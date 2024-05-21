@@ -50,9 +50,13 @@ def main():
             if 'found' in checks['status']:
                 for attempt in checks['new_attempts']:
                     if attempt['is_negative']:
-                        bot.send_message(text=format_unsuccess_message(checks), chat_id=chat_id,)
+                        bot.send_message(
+                            text=format_unsuccess_message(checks),
+                            chat_id=chat_id,)
                     else:
-                        bot.send_message(text=format_success_message(checks), chat_id=chat_id,)
+                        bot.send_message(
+                            text=format_success_message(checks),
+                            chat_id=chat_id,)
                 timestamp = checks['last_attempt_timestamp']
             elif 'timeout' in checks['status']:
                 timestamp = checks['timestamp_to_request']
