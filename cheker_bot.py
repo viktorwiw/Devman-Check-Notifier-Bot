@@ -10,7 +10,7 @@ def get_checks_long_polling(devman_token, timestamp):
     headers = {"Authorization": f'Token {devman_token}'}
     params = {'timestamp': timestamp}
     url = 'https://dvmn.org/api/long_polling/'
-    response = requests.get(url, headers=headers, params=params)
+    response = requests.get(url, headers=headers, params=params, timeout=600)
     response.raise_for_status()
     return response.json()
 
