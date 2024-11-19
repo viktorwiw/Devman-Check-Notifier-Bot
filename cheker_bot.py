@@ -1,9 +1,9 @@
 import time
 
-from environs import Env
-from loguru import logger
 import requests
 import telegram
+from environs import Env
+from loguru import logger
 
 
 def get_checks_long_polling(devman_token, timestamp):
