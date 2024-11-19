@@ -15,6 +15,21 @@ def get_checks_long_polling(devman_token, timestamp):
     return response.json()
 
 
+def send_message_template(bot, chat_id, attempt):
+    if attempt['is_negative']:
+        message_template = (
+            f'У вас проверили работу "{attempt["lesson_title"]}"\n\n'
+            f'К сожалению, в работе нашлись ошибки.\n\n'
+            f'{attempt["lesson_url"]}')
+    else:
+        message_template = (
+            f'У вас проверили работу "{attempt["lesson_title"]}"\n\n'
+            f'Преподавателю все понравилось, можно приступать к следующему уроку!\n\n'
+            f'{attempt["lesson_url"]}')
+
+    bot.send_message(chat_id=chat_id, text=message_template)
+
+
 def main():
     env = Env()
     env.read_env()
@@ -33,23 +48,7 @@ def main():
 
             if 'found' in checks['status']:
                 for attempt in checks['new_attempts']:
-                    if attempt['is_negative']:
-                        unsuccess_message_template = (
-                            f'У вас проверили работу "{checks["new_attempts"][0]["lesson_title"]}"\n\n'
-                            f'К сожалению, в работе нашлись ошибки.\n\n'
-                            f'{checks["new_attempts"][0]["lesson_url"]}')
-                        bot.send_message(
-                            text=unsuccess_message_template,
-                            chat_id=chat_id,)
-
-                    else:
-                        success_message_template = (
-                            f'У вас проверили работу "{checks["new_attempts"][0]["lesson_title"]}"\n\n'
-                            f'Преподавателю все понравилось, можно приступать к следующему уроку!\n\n'
-                            f'{checks["new_attempts"][0]["lesson_url"]}')
-                        bot.send_message(
-                            text=success_message_template,
-                            chat_id=chat_id,)
+                    send_message_template(bot, chat_id, attempt)
 
                 timestamp = checks['last_attempt_timestamp']
 
