@@ -7,10 +7,10 @@ import telegram
 
 
 def get_checks_long_polling(devman_token, timestamp):
-    headers = {"Authorization": f'Token {devman_token}'}
+    headers = {'Authorization': f'Token {devman_token}'}
     params = {'timestamp': timestamp}
     url = 'https://dvmn.org/api/long_polling/'
-    response = requests.get(url, headers=headers, params=params, timeout=600)
+    response = requests.get(url, headers=headers, params=params)
     response.raise_for_status()
     return response.json()
 
@@ -31,27 +31,28 @@ def main():
             checks = get_checks_long_polling(devman_token, timestamp)
             logger.info(f'Ответ от сервера: {checks}')
 
-            success_message_template = (
-                f'У вас проверили работу "{checks["new_attempts"][0]["lesson_title"]}"\n\n'
-                f'Преподавателю все понравилось, можно приступать к следующему уроку!\n\n'
-                f'{checks["new_attempts"][0]["lesson_url"]}')
-
-            unsuccess_message_template = (
-                f'У вас проверили работу "{checks["new_attempts"][0]["lesson_title"]}"\n\n'
-                f'К сожалению, в работе нашлись ошибки.\n\n'
-                f'{checks["new_attempts"][0]["lesson_url"]}')
-
             if 'found' in checks['status']:
                 for attempt in checks['new_attempts']:
                     if attempt['is_negative']:
+                        unsuccess_message_template = (
+                            f'У вас проверили работу "{checks["new_attempts"][0]["lesson_title"]}"\n\n'
+                            f'К сожалению, в работе нашлись ошибки.\n\n'
+                            f'{checks["new_attempts"][0]["lesson_url"]}')
                         bot.send_message(
                             text=unsuccess_message_template,
                             chat_id=chat_id,)
+
                     else:
+                        success_message_template = (
+                            f'У вас проверили работу "{checks["new_attempts"][0]["lesson_title"]}"\n\n'
+                            f'Преподавателю все понравилось, можно приступать к следующему уроку!\n\n'
+                            f'{checks["new_attempts"][0]["lesson_url"]}')
                         bot.send_message(
                             text=success_message_template,
                             chat_id=chat_id,)
+
                 timestamp = checks['last_attempt_timestamp']
+
             elif 'timeout' in checks['status']:
                 timestamp = checks['timestamp_to_request']
 
