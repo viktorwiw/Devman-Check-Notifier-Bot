@@ -3,7 +3,11 @@ import time
 import requests
 import telegram
 from environs import Env
-from loguru import logger
+
+import logging
+
+
+logging.basicConfig(level=logging.DEBUG)
 
 
 def get_checks_long_polling(devman_token, timestamp):
@@ -39,13 +43,13 @@ def main():
     devman_token = env.str('DEVMAN_TOKEN')
 
     bot = telegram.Bot(token=tg_token)
+    logging.info('Бот запущен')
 
     timestamp = None
     while True:
         try:
             checks = get_checks_long_polling(devman_token, timestamp)
-            logger.info(f'Ответ от сервера: {checks}')
-
+            logging.debug(checks)
             if 'found' in checks['status']:
                 for attempt in checks['new_attempts']:
                     send_message_template(bot, chat_id, attempt)
@@ -53,12 +57,13 @@ def main():
                 timestamp = checks['last_attempt_timestamp']
 
             elif 'timeout' in checks['status']:
+                logging.info('Ожидаю проверки')
                 timestamp = checks['timestamp_to_request']
 
         except requests.exceptions.ReadTimeout:
-            logger.warning('Превышено время ожидания запроса')
+            logging.warning('Превышено время ожидания запроса')
         except requests.exceptions.ConnectionError:
-            logger.error('Ошибка соединения')
+            logging.error('Ошибка соединения')
             time.sleep(5)
 
 
