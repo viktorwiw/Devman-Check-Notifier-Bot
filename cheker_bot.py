@@ -78,6 +78,9 @@ def main():
         except requests.exceptions.ConnectionError:
             logger.error('Ошибка соединения')
             time.sleep(5)
+        except Exception as e:
+            logger.error(f'Неизвестная ошибка: {e}')
+            time.sleep(5)
 
 
 if __name__ == '__main__':
