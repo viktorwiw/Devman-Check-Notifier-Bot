@@ -1,13 +1,23 @@
 import time
+import logging
 
 import requests
 import telegram
 from environs import Env
 
-import logging
+
+logger = logging.getLogger(__name__)
 
 
-logging.basicConfig(level=logging.DEBUG)
+class TelegramLogsHandler(logging.Handler):
+    def __init__(self, bot, chat_id):
+        super().__init__()
+        self.chat_id =chat_id
+        self.tg_bot = bot
+
+    def emit(self, record):
+        log_entry = self.format(record)
+        self.tg_bot.sendMessage(chat_id=self.chat_id, text=log_entry)
 
 
 def get_checks_long_polling(devman_token, timestamp):
@@ -35,6 +45,9 @@ def send_message_template(bot, chat_id, attempt):
 
 
 def main():
+    logging.basicConfig(level=logging.ERROR)
+    logger.setLevel(logging.DEBUG)
+
     env = Env()
     env.read_env()
 
@@ -43,13 +56,14 @@ def main():
     devman_token = env.str('DEVMAN_TOKEN')
 
     bot = telegram.Bot(token=tg_token)
-    logging.info('Бот запущен')
+
+    logger.addHandler(TelegramLogsHandler(bot, chat_id))
+    logger.info('Бот запущен')
 
     timestamp = None
     while True:
         try:
             checks = get_checks_long_polling(devman_token, timestamp)
-            logging.debug(checks)
             if 'found' in checks['status']:
                 for attempt in checks['new_attempts']:
                     send_message_template(bot, chat_id, attempt)
@@ -57,13 +71,13 @@ def main():
                 timestamp = checks['last_attempt_timestamp']
 
             elif 'timeout' in checks['status']:
-                logging.info('Ожидаю проверки')
+                logger.info('Ожидаю проверки')
                 timestamp = checks['timestamp_to_request']
 
-        except requests.exceptions.ReadTimeout:
-            logging.warning('Превышено время ожидания запроса')
+        except requests.exceptions.Timeout:
+            logger.warning('Превышено время ожидания запроса')
         except requests.exceptions.ConnectionError:
-            logging.error('Ошибка соединения')
+            logger.error('Ошибка соединения')
             time.sleep(5)
 
 
