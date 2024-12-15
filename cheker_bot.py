@@ -71,7 +71,6 @@ def main():
                 timestamp = checks['last_attempt_timestamp']
 
             elif 'timeout' in checks['status']:
-                logger.info('Ожидаю проверки')
                 timestamp = checks['timestamp_to_request']
 
         except requests.exceptions.Timeout:
