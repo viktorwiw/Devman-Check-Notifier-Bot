@@ -6,7 +6,7 @@ import telegram
 from environs import Env
 
 
-logger = logging.getLogger(__name__)
+logger = logging.getLogger('tg_devman_logger')
 
 
 class TelegramLogsHandler(logging.Handler):
@@ -45,8 +45,14 @@ def send_message_template(bot, chat_id, attempt):
 
 
 def main():
-    logging.basicConfig(level=logging.ERROR)
-    logger.setLevel(logging.DEBUG)
+    logger = logging.getLogger('tg_devman_logger')
+    logger.setLevel(logging.INFO)
+    formatter = logging.Formatter(
+        "%(levelname)s | %(asctime)s\n"
+        "%(message)s\n"
+        "%(filename)s:%(lineno)d",
+        datefmt="%Y-%m-%d %H:%M:%S"
+    )
 
     env = Env()
     env.read_env()
@@ -57,7 +63,9 @@ def main():
 
     bot = telegram.Bot(token=tg_token)
 
-    logger.addHandler(TelegramLogsHandler(bot, chat_id))
+    tg_handler = TelegramLogsHandler(bot, chat_id)
+    tg_handler.setFormatter(formatter)
+    logger.addHandler(tg_handler)
     logger.info('Бот запущен')
 
     timestamp = None

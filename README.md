@@ -40,7 +40,6 @@ pip install -r requirements.txt
 ```
 
 
-
 ## Использование
 
 Для запуска бота:
